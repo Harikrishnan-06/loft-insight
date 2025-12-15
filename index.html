@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>THE LOFT HUB | Insights Dashboard</title>
+
+<style>
+body{
+  font-family:'Montserrat',Arial,sans-serif;
+  background:#020617;
+  color:white;
+  margin:0;
+}
+header{
+  padding:20px;
+  background:black;
+  text-align:center;
+}
+.dashboard{
+  padding:20px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;
+}
+.card{
+  background:#0f172a;
+  padding:15px;
+  border-radius:14px;
+}
+.card h3{
+  margin-top:0;
+  border-bottom:1px solid #334155;
+  padding-bottom:6px;
+}
+.count{
+  font-size:42px;
+  font-weight:700;
+}
+.badge{
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:20px;
+}
+.approved{background:#22c55e;color:black;}
+.pending{background:#facc15;color:black;}
+.rejected{background:#ef4444;}
+.entry{
+  background:#020617;
+  padding:10px;
+  border-radius:10px;
+  margin-top:10px;
+}
+.time{
+  font-size:12px;
+  opacity:0.7;
+  margin-top:4px;
+}
+.note{
+  font-size:13px;
+  margin-top:6px;
+  color:#cbd5f5;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>THE LOFT HUB – Insights Dashboard</h2>
+  <div id="lastUpdate"></div>
+</header>
+
+<div class="dashboard">
+
+  <!-- TOP STATS -->
+  <div class="grid">
+    <div class="card">
+      <h3>Total Bookings</h3>
+      <div class="count" id="total">0</div>
+    </div>
+    <div class="card">
+      <h3>Approved</h3>
+      <div class="count" id="approved">0</div>
+    </div>
+    <div class="card">
+      <h3>Pending</h3>
+      <div class="count" id="pending">0</div>
+    </div>
+    <div class="card">
+      <h3>Rejected</h3>
+      <div class="count" id="rejected">0</div>
+    </div>
+  </div>
+
+  <br>
+
+  <!-- STATUS LISTS -->
+  <div class="grid">
+    <div class="card">
+      <h3>Approved Bookings</h3>
+      <div id="approvedList"></div>
+    </div>
+
+    <div class="card">
+      <h3>Pending Bookings</h3>
+      <div id="pendingList"></div>
+    </div>
+
+    <div class="card">
+      <h3>Rejected Bookings</h3>
+      <div id="rejectedList"></div>
+    </div>
+  </div>
+
+  <br>
+
+  <!-- UPCOMING EVENTS -->
+  <div class="card">
+    <h3>Upcoming Events</h3>
+    <div id="upcoming"></div>
+  </div>
+
+</div>
+
+<script type="module">
+/* 🔹 Firebase Imports */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+/* 🔹 SAME CONFIG AS PUBLIC & STAFF */
+const firebaseConfig = {
+  apiKey: "AIzaSyCHzOsZpSWN7fwEXALbPzPsknjROPp5Bf4",
+  authDomain: "the-loft-hub.firebaseapp.com",
+  projectId: "the-loft-hub",
+  storageBucket: "the-loft-hub.firebasestorage.app",
+  messagingSenderId: "720306031954",
+  appId: "1:720306031954:web:1f242a6e1531fe58587e8b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* 🔹 DOM */
+const total = document.getElementById("total");
+const approved = document.getElementById("approved");
+const pending = document.getElementById("pending");
+const rejected = document.getElementById("rejected");
+
+const approvedList = document.getElementById("approvedList");
+const pendingList = document.getElementById("pendingList");
+const rejectedList = document.getElementById("rejectedList");
+const upcoming = document.getElementById("upcoming");
+const lastUpdate = document.getElementById("lastUpdate");
+
+/* 🔹 Real-time listener */
+onSnapshot(collection(db,"bookings"), snap => {
+  let T=0,A=0,P=0,R=0;
+
+  approvedList.innerHTML="";
+  pendingList.innerHTML="";
+  rejectedList.innerHTML="";
+  upcoming.innerHTML="";
+
+  const upcomingEvents=[];
+
+  snap.forEach(d=>{
+    const b=d.data();
+    T++;
+
+    const time = b.createdAt
+      ? b.createdAt.toDate().toLocaleString()
+      : "Loading...";
+
+    const block = `
+      <div class="entry">
+        <b>${b.name}</b> | ${b.eventType}<br>
+        📅 ${b.date} | 👥 ${b.guests}<br>
+        <span class="time">🕒 Requested: ${time}</span>
+        ${b.staffNotes ? `<div class="note">📝 ${b.staffNotes}</div>` : ""}
+      </div>
+    `;
+
+    if(b.status==="Approved"){
+      A++;
+      approvedList.innerHTML+=block;
+      upcomingEvents.push(b);
+    }
+    if(b.status==="Pending"){
+      P++;
+      pendingList.innerHTML+=block;
+    }
+    if(b.status==="Rejected"){
+      R++;
+      rejectedList.innerHTML+=block;
+    }
+  });
+
+  /* Update counters */
+  total.innerText=T;
+  approved.innerText=A;
+  pending.innerText=P;
+  rejected.innerText=R;
+
+  /* Upcoming events sorted by event date */
+  upcomingEvents
+    .sort((a,b)=>new Date(a.date)-new Date(b.date))
+    .forEach(e=>{
+      upcoming.innerHTML+=`
+        <div class="entry">
+          <b>${e.eventType}</b> – ${e.name}<br>
+          📅 Event Date: ${e.date}
+        </div>
+      `;
+    });
+
+  lastUpdate.innerText = "Last updated: " + new Date().toLocaleString();
+});
+</script>
+
+</body>
+</html>
