@@ -27,37 +27,24 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-header {
-  text-align: center;
-  margin-bottom: 25px;
-}
+header { text-align: center; margin-bottom: 25px; }
+header h2 { letter-spacing: 5px; font-weight: 700; text-transform: uppercase; margin: 0; }
+#lastUpdate { font-size: 11px; opacity: 0.5; margin-top: 5px; }
 
-header h2 {
-  letter-spacing: 5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  margin: 0;
-}
+.dashboard { max-width: 1200px; margin: 0 auto; }
 
-#lastUpdate {
-  font-size: 11px;
-  opacity: 0.5;
-  margin-top: 5px;
-}
-
-.dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.grid {
+/* Grid for 5 equal small cards */
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
   margin-bottom: 20px;
 }
 
-/* Glassmorphism Styling */
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+}
+
 .card {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(15px);
@@ -66,54 +53,48 @@ header h2 {
   padding: 15px;
   border-radius: 18px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .card h3 {
-  margin-top: 0;
-  font-size: 11px;
+  margin: 0 0 10px 0;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   opacity: 0.7;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 8px;
-  margin-bottom: 12px;
 }
 
-.count {
-  font-size: 36px;
-  font-weight: 700;
-}
-
+.count { font-size: 32px; font-weight: 700; }
 #total { color: #fff; }
 #approved { color: #00ffcc; }
 #pending { color: #facc15; }
 #rejected { color: #ff4d4d; }
 
-/* COMPACT CHART CONTAINER */
-.chart-container {
-  height: 180px; /* Reduced height */
-  position: relative;
+/* MINIMAL CHART STYLING */
+.chart-box {
+  height: 50px; /* Very small height */
+  width: 100%;
 }
+
+/* Bottom Sections */
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) { .list-grid { grid-template-columns: 1fr; } }
 
 .entry {
   background: rgba(0, 0, 0, 0.2);
   padding: 10px;
   border-radius: 10px;
-  margin-top: 10px;
-  font-size: 13px;
-}
-
-#approvedList .entry { border-left: 3px solid #00ffcc; }
-#pendingList .entry { border-left: 3px solid #facc15; }
-#rejectedList .entry { border-left: 3px solid #ff4d4d; }
-
-.time { font-size: 10px; opacity: 0.5; display: block; margin-top: 4px; }
-
-#upcoming .entry {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255,255,255,0.05);
+  margin-top: 8px;
+  font-size: 12px;
+  border-left: 3px solid rgba(255,255,255,0.2);
 }
 </style>
 </head>
@@ -127,9 +108,9 @@ header h2 {
 
 <div class="dashboard">
 
-  <div class="grid">
+  <div class="stats-grid">
     <div class="card">
-      <h3>Total Bookings</h3>
+      <h3>Total</h3>
       <div class="count" id="total">0</div>
     </div>
     
@@ -139,9 +120,9 @@ header h2 {
     </div>
 
     <div class="card">
-      <h3>Popularity</h3>
-      <div class="chart-container">
-        <canvas id="eventChart"></canvas>
+      <h3>Type Ratio</h3>
+      <div class="chart-box">
+        <canvas id="miniChart"></canvas>
       </div>
     </div>
 
@@ -156,24 +137,24 @@ header h2 {
     </div>
   </div>
 
-  <div class="grid">
+  <div class="list-grid">
     <div class="card">
-      <h3>Approved</h3>
+      <h3>Approved List</h3>
       <div id="approvedList"></div>
     </div>
     <div class="card">
-      <h3>Pending</h3>
+      <h3>Pending List</h3>
       <div id="pendingList"></div>
     </div>
     <div class="card">
-      <h3>Rejected</h3>
+      <h3>Rejected List</h3>
       <div id="rejectedList"></div>
     </div>
   </div>
 
   <div class="card">
     <h3>Upcoming Timeline</h3>
-    <div id="upcoming"></div>
+    <div id="upcoming" style="font-size: 13px;"></div>
   </div>
 
 </div>
@@ -194,25 +175,26 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Initialize Compact Chart
-const ctx = document.getElementById('eventChart').getContext('2d');
-let eventChart = new Chart(ctx, {
+// Initialize Mini Sparkline Chart
+const ctx = document.getElementById('miniChart').getContext('2d');
+let miniChart = new Chart(ctx, {
     type: 'bar',
     data: {
-        labels: ['Wed', 'Corp', 'Priv', 'Cult'], // Shorter labels for small size
+        labels: ['W', 'C', 'P', 'L'], // Ultra-short labels
         datasets: [{
             data: [0, 0, 0, 0],
             backgroundColor: ['#00ffcc', '#facc15', '#ff4b2b', '#9b59b2'],
-            borderRadius: 5
+            borderRadius: 3,
+            barPercentage: 0.8
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { legend: { display: false }, tooltip: { enabled: true } },
         scales: {
-            y: { display: false }, // Hide Y axis to save space
-            x: { ticks: { color: '#fff', font: { size: 10 } }, grid: { display: false } }
+            y: { display: false }, 
+            x: { display: false } // Hide X axis completely for minimal look
         }
     }
 });
@@ -229,8 +211,7 @@ onSnapshot(collection(db,"bookings"), snap => {
     T++;
     if(counts[b.eventType] !== undefined) counts[b.eventType]++;
 
-    const time = b.createdAt ? b.createdAt.toDate().toLocaleDateString() : "Pending";
-    const block = `<div class="entry"><b>${b.name}</b><br>${b.eventType}<span class="time">${time}</span></div>`;
+    const block = `<div class="entry"><b>${b.name}</b><br>${b.eventType}</div>`;
 
     if(b.status==="Approved") { A++; approvedList.innerHTML+=block; upcomingEvents.push(b); }
     else if(b.status==="Pending") { P++; pendingList.innerHTML+=block; }
@@ -242,11 +223,12 @@ onSnapshot(collection(db,"bookings"), snap => {
   document.getElementById("pending").innerText=P;
   document.getElementById("rejected").innerText=R;
 
-  eventChart.data.datasets[0].data = [counts["Wedding"], counts["Corporate Event"], counts["Private Party"], counts["Cultural Event"]];
-  eventChart.update();
+  // Update Mini Chart
+  miniChart.data.datasets[0].data = [counts["Wedding"], counts["Corporate Event"], counts["Private Party"], counts["Cultural Event"]];
+  miniChart.update();
 
   upcomingEvents.sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0, 5).forEach(e=>{
-    upcoming.innerHTML+=`<div class="entry"><span><b>${e.date}</b> — ${e.name}</span></div>`;
+    upcoming.innerHTML+=`<div style="padding:5px 0;">📅 <b>${e.date}</b> — ${e.name} (${e.eventType})</div>`;
   });
 
   document.getElementById("lastUpdate").innerText = "Synced: " + new Date().toLocaleTimeString();
