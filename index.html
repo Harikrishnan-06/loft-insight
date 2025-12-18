@@ -25,7 +25,7 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* --- LOGIN OVERLAY --- */
+/* LOGIN OVERLAY */
 #loginOverlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -63,7 +63,7 @@ body {
   text-transform: uppercase; letter-spacing: 1px;
 }
 
-/* --- DASHBOARD CONTENT --- */
+/* DASHBOARD CONTENT */
 #dashboardContent {
   display: none;
   max-width: 1200px;
@@ -114,8 +114,6 @@ header h2 { letter-spacing: 5px; font-weight: 700; text-transform: uppercase; ma
   margin-bottom: 20px;
 }
 
-@media (max-width: 768px) { .list-grid { grid-template-columns: 1fr; } }
-
 .entry {
   background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 12px;
   margin-top: 10px; font-size: 13px; text-align: left;
@@ -128,11 +126,31 @@ header h2 { letter-spacing: 5px; font-weight: 700; text-transform: uppercase; ma
 /* ACTION BAR */
 .action-bar {
   text-align: center; margin-top: 30px;
+  display: flex; justify-content: center; gap: 15px;
+}
+
+.btn-manage {
+  text-decoration: none;
+  background: rgba(0, 255, 204, 0.2);
+  color: #00ffcc;
+  border: 1px solid #00ffcc;
+  padding: 10px 25px;
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.3s;
+  display: inline-block;
+}
+
+.btn-manage:hover {
+  background: #00ffcc;
+  color: #000;
+  box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
 }
 
 .btn-logout {
   background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);
-  padding: 10px 40px; border-radius: 25px; cursor: pointer; font-size: 13px;
+  padding: 10px 25px; border-radius: 25px; cursor: pointer; font-size: 13px;
   transition: 0.3s;
 }
 
@@ -179,6 +197,7 @@ header h2 { letter-spacing: 5px; font-weight: 700; text-transform: uppercase; ma
   </div>
   
   <div class="action-bar">
+      <a href="https://harikrishnan-06.github.io/loft-hub-staff/" class="btn-manage">Manage Bookings</a>
       <button onclick="location.reload()" class="btn-logout">Logout</button>
   </div>
 </div>
@@ -193,4 +212,52 @@ const firebaseConfig = {
   projectId: "the-loft-hub",
   storageBucket: "the-loft-hub.firebasestorage.app",
   messagingSenderId: "720306031954",
-  appId: "1:720306031954:web:
+  appId: "1:720306031954:web:1f242a6e1531fe58587e8b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.handleLogin = function() {
+    const id = document.getElementById('adminID').value;
+    const pass = document.getElementById('adminPass').value;
+    if(id === "lofthub@login.info" && pass === "Bookingspace") {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'block';
+        initDashboard();
+    } else {
+        document.getElementById('errorMsg').innerText = "❌ Invalid Credentials";
+    }
+}
+
+document.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleLogin(); });
+
+function initDashboard() {
+    onSnapshot(collection(db,"bookings"), snap => {
+      let T=0, A=0, P=0, R=0;
+      const appL = document.getElementById("approvedList"), penL = document.getElementById("pendingList"), rejL = document.getElementById("rejectedList"), upc = document.getElementById("upcoming");
+      appL.innerHTML=""; penL.innerHTML=""; rejL.innerHTML=""; upc.innerHTML="";
+      const upcEv=[];
+
+      snap.forEach(d => {
+        const b = d.data(); T++;
+        const block = `<div class="entry"><b>${b.name}</b><br>${b.eventType}<br><small>${b.date}</small></div>`;
+        if(b.status==="Approved") { A++; appL.innerHTML+=block; upcEv.push(b); }
+        else if(b.status==="Pending") { P++; penL.innerHTML+=block; }
+        else if(b.status==="Rejected") { R++; rejL.innerHTML+=block; }
+      });
+
+      document.getElementById("total").innerText=T;
+      document.getElementById("approved").innerText=A;
+      document.getElementById("pending").innerText=P;
+      document.getElementById("rejected").innerText=R;
+
+      upcEv.sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0, 8).forEach(e=>{
+        upc.innerHTML+=`<div>📅 <b>${e.date}</b> — ${e.name}</div>`;
+      });
+      document.getElementById("lastUpdate").innerText = "Synced: " + new Date().toLocaleTimeString();
+    });
+}
+</script>
+</body>
+</html>
