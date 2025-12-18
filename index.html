@@ -3,21 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>THE LOFT HUB | Admin Login</title>
+<title>THE LOFT HUB | Insights Dashboard</title>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap');
 
 body {
   font-family: 'Montserrat', sans-serif;
-  /* Matching the fancy animated background */
   background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #4a1942);
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: white;
   margin: 0;
   padding: 20px;
 }
@@ -28,151 +25,218 @@ body {
   100% { background-position: 0% 50%; }
 }
 
+/* LOGIN BOX STYLING */
+#loginOverlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  background: inherit;
+}
+
 .login-card {
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 40px;
   width: 100%;
-  max-width: 400px;
+  max-width: 380px;
   border-radius: 24px;
-  color: #fff;
   text-align: center;
   box-shadow: 0 25px 50px rgba(0,0,0,0.5);
 }
 
-.brand h1 {
-  margin: 0 0 10px 0;
-  letter-spacing: 5px;
-  font-weight: 700;
-  font-size: 24px;
-}
-
-.brand p {
-  font-size: 12px;
-  opacity: 0.7;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 30px;
-}
-
-input {
-  width: 100%;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 12px;
-  border: none;
-  outline: none;
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
-  font-family: inherit;
+.login-card input {
+  width: 100%; padding: 14px; margin-bottom: 15px;
+  border-radius: 12px; border: none; outline: none;
+  background: rgba(255, 255, 255, 0.9); font-family: inherit;
   box-sizing: border-box;
 }
 
-button {
-  width: 100%;
-  padding: 16px;
-  border: none;
-  border-radius: 35px;
-  font-size: 16px;
-  font-weight: 700;
+.login-card button {
+  width: 100%; padding: 15px; border: none; border-radius: 30px;
   background: linear-gradient(135deg, #ff416c, #ff4b2b);
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  letter-spacing: 1px;
+  color: white; font-weight: 700; cursor: pointer; transition: 0.3s;
 }
 
-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(255, 75, 43, 0.4);
-}
-
-#errorMsg {
-  color: #ff4d4d;
-  font-size: 13px;
-  margin-top: 15px;
-  min-height: 20px;
-}
-
-/* Hidden Dashboard Menu */
-#adminMenu {
+/* DASHBOARD STYLING (Hidden initially) */
+#mainContent {
   display: none;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.menu-btn {
-  background: rgba(255, 255, 255, 0.15);
-  margin-top: 15px;
-  text-decoration: none;
-  color: white;
-  display: block;
-  padding: 15px;
-  border-radius: 12px;
-  font-weight: 600;
+header { text-align: center; margin-bottom: 25px; }
+header h2 { letter-spacing: 5px; font-weight: 700; text-transform: uppercase; margin: 0; }
+#lastUpdate { font-size: 11px; opacity: 0.5; margin-top: 5px; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: 0.3s;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  text-align: center;
 }
 
-.menu-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+.card h3 {
+  margin: 0 0 10px 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.7;
 }
+
+.count { font-size: 42px; font-weight: 700; }
+#total { color: #fff; }
+#approved { color: #00ffcc; }
+#pending { color: #facc15; }
+#rejected { color: #ff4d4d; }
+
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) { .list-grid { grid-template-columns: 1fr; } }
+
+.entry {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 10px;
+  font-size: 13px;
+  text-align: left;
+}
+
+#approvedList .entry { border-left: 4px solid #00ffcc; }
+#pendingList .entry { border-left: 4px solid #facc15; }
+#rejectedList .entry { border-left: 4px solid #ff4d4d; }
+
+.timeline-card { text-align: left; }
 </style>
 </head>
 
 <body>
 
-<div class="login-card">
-  <div class="brand">
-    <h1>THE LOFT HUB</h1>
-    <p>Admin Portal</p>
-  </div>
-
-  <div id="loginForm">
+<div id="loginOverlay">
+  <div class="login-card">
+    <h1 style="letter-spacing:4px; font-size:22px; margin-bottom:10px;">THE LOFT HUB</h1>
+    <p style="font-size:11px; text-transform:uppercase; margin-bottom:25px; opacity:0.7;">Secure Insights Access</p>
+    
     <input type="text" id="adminID" placeholder="Admin ID">
     <input type="password" id="adminPass" placeholder="Password">
-    <button onclick="checkLogin()">Enter Dashboard</button>
-    <div id="errorMsg"></div>
-  </div>
-
-  <div id="adminMenu">
-    <h3 style="color: #00ffcc;">Access Granted</h3>
-    <p style="margin-bottom: 20px;">Welcome back, Administrator.</p>
-    
-    <a href="staff.html" class="menu-btn">Booking Management</a>
-    <a href="insights.html" class="menu-btn">Business Insights</a>
-    
-    <button onclick="location.reload()" style="background:none; border:1px solid rgba(255,255,255,0.3); margin-top:20px; font-size:12px;">Logout</button>
+    <button onclick="checkLogin()">Access Insights</button>
+    <p id="errorMsg" style="color:#ff4d4d; font-size:12px; margin-top:15px;"></p>
   </div>
 </div>
 
-<script>
-function checkLogin() {
-    const idInput = document.getElementById('adminID').value;
-    const passInput = document.getElementById('adminPass').value;
-    const errorMsg = document.getElementById('errorMsg');
-    
-    // Credentials provided by you
-    const validID = "lofthub@login.info";
-    const validPass = "Bookingspace";
+<div id="mainContent">
+  <header>
+    <h2>THE LOFT HUB</h2>
+    <div id="lastUpdate">Syncing Live Data...</div>
+  </header>
 
-    if (idInput === validID && passInput === validPass) {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('adminMenu').style.display = 'block';
+  <div class="dashboard">
+    <div class="stats-grid">
+      <div class="card"><h3>Total Bookings</h3><div class="count" id="total">0</div></div>
+      <div class="card"><h3>Approved</h3><div class="count" id="approved">0</div></div>
+      <div class="card"><h3>Pending</h3><div class="count" id="pending">0</div></div>
+      <div class="card"><h3>Rejected</h3><div class="count" id="rejected">0</div></div>
+    </div>
+
+    <div class="list-grid">
+      <div class="card"><h3>Approved</h3><div id="approvedList"></div></div>
+      <div class="card"><h3>Pending</h3><div id="pendingList"></div></div>
+      <div class="card"><h3>Rejected</h3><div id="rejectedList"></div></div>
+    </div>
+
+    <div class="card timeline-card">
+      <h3>Upcoming Timeline</h3>
+      <div id="upcoming" style="font-size: 14px; line-height: 1.8;"></div>
+    </div>
+  </div>
+  
+  <center>
+    <button onclick="location.reload()" style="background:none; color:white; border:1px solid rgba(255,255,255,0.3); padding:8px 20px; border-radius:20px; cursor:pointer; margin-top:20px; font-size:12px;">Logout Session</button>
+  </center>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCHzOsZpSWN7fwEXALbPzPsknjROPp5Bf4",
+  authDomain: "the-loft-hub.firebaseapp.com",
+  projectId: "the-loft-hub",
+  storageBucket: "the-loft-hub.firebasestorage.app",
+  messagingSenderId: "720306031954",
+  appId: "1:720306031954:web:1f242a6e1531fe58587e8b"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// LOGIN FUNCTION
+window.checkLogin = function() {
+    const id = document.getElementById('adminID').value;
+    const pass = document.getElementById('adminPass').value;
+    
+    if(id === "lofthub@login.info" && pass === "Bookingspace") {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        startDashboardListener();
     } else {
-        errorMsg.innerText = "❌ Invalid Credentials. Access Denied.";
-        // Clear password field for retry
-        document.getElementById('adminPass').value = "";
+        document.getElementById('errorMsg').innerText = "Invalid ID or Password.";
     }
 }
 
-// Allow "Enter" key to trigger login
-document.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        checkLogin();
-    }
-});
-</script>
+// DASHBOARD LISTENER (Only runs after login)
+function startDashboardListener() {
+    onSnapshot(collection(db,"bookings"), snap => {
+      let T=0, A=0, P=0, R=0;
+      approvedList.innerHTML=""; pendingList.innerHTML=""; rejectedList.innerHTML=""; upcoming.innerHTML="";
+      const upcomingEvents=[];
 
+      snap.forEach(d => {
+        const b = d.data();
+        T++;
+        const block = `<div class="entry"><b>${b.name}</b><br>${b.eventType}<br><small style="opacity:0.6">${b.date}</small></div>`;
+
+        if(b.status==="Approved") { A++; approvedList.innerHTML+=block; upcomingEvents.push(b); }
+        else if(b.status==="Pending") { P++; pendingList.innerHTML+=block; }
+        else if(b.status==="Rejected") { R++; rejectedList.innerHTML+=block; }
+      });
+
+      document.getElementById("total").innerText=T;
+      document.getElementById("approved").innerText=A;
+      document.getElementById("pending").innerText=P;
+      document.getElementById("rejected").innerText=R;
+
+      upcomingEvents.sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0, 8).forEach(e=>{
+        upcoming.innerHTML+=`<div>📅 <b>${e.date}</b> — ${e.name} (${e.eventType})</div>`;
+      });
+
+      document.getElementById("lastUpdate").innerText = "Data Synced: " + new Date().toLocaleTimeString();
+    });
+}
+</script>
 </body>
 </html>
