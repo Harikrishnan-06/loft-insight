@@ -25,19 +25,19 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* LOGIN BOX STYLING */
+/* --- LOGIN OVERLAY --- */
 #loginOverlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
   z-index: 1000;
-  background: inherit;
+  background: inherit; /* Keeps animated background visible */
 }
 
 .login-card {
   background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 40px;
   width: 100%;
@@ -47,21 +47,26 @@ body {
   box-shadow: 0 25px 50px rgba(0,0,0,0.5);
 }
 
+.login-card h1 { letter-spacing: 5px; font-size: 22px; margin-bottom: 30px; }
+
 .login-card input {
-  width: 100%; padding: 14px; margin-bottom: 15px;
+  width: 100%; padding: 15px; margin-bottom: 15px;
   border-radius: 12px; border: none; outline: none;
   background: rgba(255, 255, 255, 0.9); font-family: inherit;
-  box-sizing: border-box;
+  box-sizing: border-box; color: #333;
 }
 
 .login-card button {
   width: 100%; padding: 15px; border: none; border-radius: 30px;
   background: linear-gradient(135deg, #ff416c, #ff4b2b);
   color: white; font-weight: 700; cursor: pointer; transition: 0.3s;
+  text-transform: uppercase; letter-spacing: 1px;
 }
 
-/* DASHBOARD STYLING (Hidden initially) */
-#mainContent {
+.login-card button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255, 75, 43, 0.4); }
+
+/* --- DASHBOARD CONTENT (Hidden by default) --- */
+#dashboardContent {
   display: none;
   max-width: 1200px;
   margin: 0 auto;
@@ -137,17 +142,15 @@ header h2 { letter-spacing: 5px; font-weight: 700; text-transform: uppercase; ma
 
 <div id="loginOverlay">
   <div class="login-card">
-    <h1 style="letter-spacing:4px; font-size:22px; margin-bottom:10px;">THE LOFT HUB</h1>
-    <p style="font-size:11px; text-transform:uppercase; margin-bottom:25px; opacity:0.7;">Secure Insights Access</p>
-    
+    <h1>THE LOFT HUB</h1>
     <input type="text" id="adminID" placeholder="Admin ID">
     <input type="password" id="adminPass" placeholder="Password">
-    <button onclick="checkLogin()">Access Insights</button>
+    <button onclick="handleLogin()">Login to Insights</button>
     <p id="errorMsg" style="color:#ff4d4d; font-size:12px; margin-top:15px;"></p>
   </div>
 </div>
 
-<div id="mainContent">
+<div id="dashboardContent">
   <header>
     <h2>THE LOFT HUB</h2>
     <div id="lastUpdate">Syncing Live Data...</div>
@@ -155,16 +158,37 @@ header h2 { letter-spacing: 5px; font-weight: 700; text-transform: uppercase; ma
 
   <div class="dashboard">
     <div class="stats-grid">
-      <div class="card"><h3>Total Bookings</h3><div class="count" id="total">0</div></div>
-      <div class="card"><h3>Approved</h3><div class="count" id="approved">0</div></div>
-      <div class="card"><h3>Pending</h3><div class="count" id="pending">0</div></div>
-      <div class="card"><h3>Rejected</h3><div class="count" id="rejected">0</div></div>
+      <div class="card">
+        <h3>Total Bookings</h3>
+        <div class="count" id="total">0</div>
+      </div>
+      <div class="card">
+        <h3>Approved</h3>
+        <div class="count" id="approved">0</div>
+      </div>
+      <div class="card">
+        <h3>Pending</h3>
+        <div class="count" id="pending">0</div>
+      </div>
+      <div class="card">
+        <h3>Rejected</h3>
+        <div class="count" id="rejected">0</div>
+      </div>
     </div>
 
     <div class="list-grid">
-      <div class="card"><h3>Approved</h3><div id="approvedList"></div></div>
-      <div class="card"><h3>Pending</h3><div id="pendingList"></div></div>
-      <div class="card"><h3>Rejected</h3><div id="rejectedList"></div></div>
+      <div class="card">
+        <h3>Approved</h3>
+        <div id="approvedList"></div>
+      </div>
+      <div class="card">
+        <h3>Pending</h3>
+        <div id="pendingList"></div>
+      </div>
+      <div class="card">
+        <h3>Rejected</h3>
+        <div id="rejectedList"></div>
+      </div>
     </div>
 
     <div class="card timeline-card">
@@ -173,9 +197,9 @@ header h2 { letter-spacing: 5px; font-weight: 700; text-transform: uppercase; ma
     </div>
   </div>
   
-  <center>
-    <button onclick="location.reload()" style="background:none; color:white; border:1px solid rgba(255,255,255,0.3); padding:8px 20px; border-radius:20px; cursor:pointer; margin-top:20px; font-size:12px;">Logout Session</button>
-  </center>
+  <div style="text-align: center; margin-top: 30px;">
+      <button onclick="location.reload()" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 20px; cursor: pointer; font-size: 12px;">Logout</button>
+  </div>
 </div>
 
 <script type="module">
@@ -194,31 +218,50 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// LOGIN FUNCTION
-window.checkLogin = function() {
+// Global login check
+window.handleLogin = function() {
     const id = document.getElementById('adminID').value;
     const pass = document.getElementById('adminPass').value;
-    
+    const error = document.getElementById('errorMsg');
+
     if(id === "lofthub@login.info" && pass === "Bookingspace") {
         document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-        startDashboardListener();
+        document.getElementById('dashboardContent').style.display = 'block';
+        initDashboard(); // Only start listening once logged in
     } else {
-        document.getElementById('errorMsg').innerText = "Invalid ID or Password.";
+        error.innerText = "❌ Invalid Credentials";
     }
 }
 
-// DASHBOARD LISTENER (Only runs after login)
-function startDashboardListener() {
+// Allow Enter key to login
+document.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleLogin(); });
+
+function initDashboard() {
     onSnapshot(collection(db,"bookings"), snap => {
       let T=0, A=0, P=0, R=0;
-      approvedList.innerHTML=""; pendingList.innerHTML=""; rejectedList.innerHTML=""; upcoming.innerHTML="";
+      
+      const approvedList = document.getElementById("approvedList");
+      const pendingList = document.getElementById("pendingList");
+      const rejectedList = document.getElementById("rejectedList");
+      const upcoming = document.getElementById("upcoming");
+      
+      approvedList.innerHTML=""; 
+      pendingList.innerHTML=""; 
+      rejectedList.innerHTML=""; 
+      upcoming.innerHTML="";
+      
       const upcomingEvents=[];
 
       snap.forEach(d => {
         const b = d.data();
         T++;
-        const block = `<div class="entry"><b>${b.name}</b><br>${b.eventType}<br><small style="opacity:0.6">${b.date}</small></div>`;
+
+        const block = `
+          <div class="entry">
+            <b>${b.name}</b><br>
+            ${b.eventType}<br>
+            <small style="opacity:0.6">${b.date}</small>
+          </div>`;
 
         if(b.status==="Approved") { A++; approvedList.innerHTML+=block; upcomingEvents.push(b); }
         else if(b.status==="Pending") { P++; pendingList.innerHTML+=block; }
