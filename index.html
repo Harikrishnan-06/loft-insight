@@ -25,7 +25,7 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* LOGIN OVERLAY */
+/* --- LOGIN OVERLAY --- */
 #loginOverlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -63,7 +63,7 @@ body {
   text-transform: uppercase; letter-spacing: 1px;
 }
 
-/* DASHBOARD CONTENT */
+/* --- DASHBOARD CONTENT --- */
 #dashboardContent {
   display: none;
   max-width: 1200px;
@@ -71,4 +71,126 @@ body {
 }
 
 header { text-align: center; margin-bottom: 25px; }
-header h2 { letter-spacing: 5px;
+header h2 { letter-spacing: 5px; font-weight: 700; text-transform: uppercase; margin: 0; }
+#lastUpdate { font-size: 11px; opacity: 0.5; margin-top: 5px; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.card h3 {
+  margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 2px; opacity: 0.7;
+}
+
+.count { font-size: 42px; font-weight: 700; }
+#total { color: #fff; }
+#approved { color: #00ffcc; }
+#pending { color: #facc15; }
+#rejected { color: #ff4d4d; }
+
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) { .list-grid { grid-template-columns: 1fr; } }
+
+.entry {
+  background: rgba(0, 0, 0, 0.2); padding: 12px; border-radius: 12px;
+  margin-top: 10px; font-size: 13px; text-align: left;
+}
+
+#approvedList .entry { border-left: 4px solid #00ffcc; }
+#pendingList .entry { border-left: 4px solid #facc15; }
+#rejectedList .entry { border-left: 4px solid #ff4d4d; }
+
+/* ACTION BAR */
+.action-bar {
+  text-align: center; margin-top: 30px;
+}
+
+.btn-logout {
+  background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);
+  padding: 10px 40px; border-radius: 25px; cursor: pointer; font-size: 13px;
+  transition: 0.3s;
+}
+
+.btn-logout:hover { background: rgba(255,255,255,0.2); }
+</style>
+</head>
+
+<body>
+
+<div id="loginOverlay">
+  <div class="login-card">
+    <h1>THE LOFT HUB</h1>
+    <input type="text" id="adminID" placeholder="Admin ID">
+    <input type="password" id="adminPass" placeholder="Password">
+    <button onclick="handleLogin()">Login to Insights</button>
+    <p id="errorMsg" style="color:#ff4d4d; font-size:12px; margin-top:15px;"></p>
+  </div>
+</div>
+
+<div id="dashboardContent">
+  <header>
+    <h2>THE LOFT HUB</h2>
+    <div id="lastUpdate">Syncing Live Data...</div>
+  </header>
+
+  <div class="dashboard">
+    <div class="stats-grid">
+      <div class="card"><h3>Total</h3><div class="count" id="total">0</div></div>
+      <div class="card"><h3>Approved</h3><div class="count" id="approved">0</div></div>
+      <div class="card"><h3>Pending</h3><div class="count" id="pending">0</div></div>
+      <div class="card"><h3>Rejected</h3><div class="count" id="rejected">0</div></div>
+    </div>
+
+    <div class="list-grid">
+      <div class="card"><h3>Approved</h3><div id="approvedList"></div></div>
+      <div class="card"><h3>Pending</h3><div id="pendingList"></div></div>
+      <div class="card"><h3>Rejected</h3><div id="rejectedList"></div></div>
+    </div>
+
+    <div class="card" style="text-align:left;">
+      <h3>Upcoming Timeline</h3>
+      <div id="upcoming" style="font-size: 14px; line-height: 1.8;"></div>
+    </div>
+  </div>
+  
+  <div class="action-bar">
+      <button onclick="location.reload()" class="btn-logout">Logout</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCHzOsZpSWN7fwEXALbPzPsknjROPp5Bf4",
+  authDomain: "the-loft-hub.firebaseapp.com",
+  projectId: "the-loft-hub",
+  storageBucket: "the-loft-hub.firebasestorage.app",
+  messagingSenderId: "720306031954",
+  appId: "1:720306031954:web:
